@@ -1,26 +1,38 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+// Compatible with OpenZeppelin Contracts ^5.0.0
+pragma solidity ^0.8.20;
 
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./staking.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract rewardToken is ERC20 {
-    uint256 amount;
+/// @custom:security-contact martin.casal.venencia@gmail.com
 
-    constructor() ERC20("NIXKOO", "NXK") {
-        _mint(msg.sender, amount);
+contract Reward is ERC20, ERC20Burnable, ERC20Pausable, Ownable {
+    constructor(address initialOwner)
+        ERC20("reward", "RTK")
+        Ownable(initialOwner)
+    {}
+
+    function pause() public onlyOwner {
+        _pause();
     }
 
-    event mintReward(
-        address indexed _from,
-        address indexed _to,
-        uint256 _value
-    );
-    event mintApproved(
-        address indexed _owner,
-        address indexed _spender,
-        uint256 _value
-    );
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
+    }
+
+    // The following functions are overrides required by Solidity.
+
+    function _update(address from, address to, uint256 value)
+        internal
+        override(ERC20, ERC20Pausable)
+    {
+        super._update(from, to, value);
+    }
 }
